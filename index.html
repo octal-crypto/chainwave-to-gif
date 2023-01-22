@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>CH41NW4V3S</title>
+        <meta charset="utf-8">
+        <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+        <script src="gif.js"></script>
+        <script src="chainwaves.js"></script>
+        <script src="svg-to-gif.js"></script>
+        <style>
+            html { overflow-y: scroll }
+            body { background-color: black }
+            #top {
+                font-family: monospace;
+                color:white;
+                text-align: center;
+                font-size: 17px;
+            }
+            #art { text-align: center}
+            input, button  {
+                font-family: monospace;
+                background-color:black;
+                color:white;
+                border-color: white;
+                font-size:18px;
+                border-width:1px;
+                padding:2px; 
+                border-radius: 7px;
+                border-style: outset;
+                margin: 2px;
+            }
+            h1 { font-size: 30px; margin:15px; }
+            input { width: 80px;}
+            button { height:35px; width: 200px; }
+            #cancel { display:none }
+            input:invalid { border-color: red }
+            input:enabled:hover, button:enabled:hover {
+                border-width:2px;
+                padding:1px;
+                border-color: white
+            }
+        </style>
+    </head>
+    <body>
+        <div id="top">
+            <h1>CH41NW4V35</h1>
+            Token Id:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input id="id" type="number" value="0" min="0" data-min="0" data-default="0"><br>
+            Width (pixels):&nbsp; <input id="width" type="number" value="600" min="1" data-min="1" data-default="600"><br>
+            Height (pixels): <input id="height" type="number" value="600" min="1" data-min="1" data-default="600"><br>
+            Duration (sec):&nbsp; <input id="duration" type="number" value="4" min="1" data-min="1" data-default="4"><br>
+            <br>
+            <button id="fs" data-min="0" data-max="1" data-default="0" disabled>Fullscreen</button>
+            <button id="cancel">Cancel</button>
+            <button id="render" disabled>Render GIF</button>
+            <br><br>
+        </div>
+        <div id="art"></div>
+        <br>
+        <script>
+            // DOM elements
+            const topDiv = document.getElementById("top");
+            const tokenId = document.getElementById("id");
+            const width = document.getElementById("width");
+            const height = document.getElementById("height");
+            const duration = document.getElementById("duration");
+            const fullscreen = document.getElementById("fs");
+            const cancel = document.getElementById("cancel");
+            const render = document.getElementById("render");
+            const art = document.getElementById("art");
+            const inputs = [tokenId, width, height, duration, fullscreen];
+
+            // Returns true if the input is between [min,max]
+            function inputValid(i) {
+                return i && (!i.hasAttribute("data-min") || parseInt(i.value) >= parseInt(i.getAttribute("data-min"))) &&
+                            (!i.hasAttribute("data-max") || parseInt(i.value) <= parseInt(i.getAttribute("data-max")));
+            }
+
+            // Updates inputs with values from the URL query string
+            refreshInputs();
+            function refreshInputs() {
+
+                // Reset all inputs
+                inputs.forEach(i => i.value = i.getAttribute("data-default"));
+
+                // Parse the query
+                var q = window.location.href.lastIndexOf("?");
+                if (q > -1) {
+                    var query = decodeURIComponent(window.location.href.slice(q+1));
+                    var settings = query.split("&");
+                    for (var i=0; i < settings.length; i++) {
+                        var setting = settings[i].split("=");
+
+                        // Update inputs with valid query values
+                        var input = document.getElementById(setting[0]);
+                        if (inputValid(input)) input.value = setting[1];
+                    }
+                }
+            }
+
+            // Generates a URL query string from the inputs
+            refreshQuery(true); // Normalize the initial query if it's invalid
+            function refreshQuery(replace) {
+                var query = inputs.reduce(function(q,i) {
+                    var show = inputValid(i) && i.value != i.getAttribute("data-default");
+                    return q + (show ? ((q?"&":"?") + i.id + "=" + parseInt(i.value)):"");
+                }, "");
+                var url = location.pathname + query;
+                if (replace) history.replaceState(url, null, url);
+                else if (query != history.state) history.pushState(url, null, url);
+            }
+
+            // Re-render on browser back button
+            window.addEventListener("popstate", () => { refreshInputs(); refreshFullscreen(); });
+
+            // Toggle full screen
+            refreshFullscreen();
+            function refreshFullscreen() { topDiv.style.display = (fullscreen.value == "0" ? "block" : "none"); }
+            fullscreen.onclick = function() {
+                fullscreen.value = (fullscreen.value == "0" ? "1" : "0");
+                refreshFullscreen();
+                refreshQuery();
+            }
+
+            // Chainwaves ETH contract
+            var web3 = new Web3(new Web3.providers.HttpProvider("https://rpc.flashbots.net"));
+            var contract = new web3.eth.Contract([
+            {
+                "type": "function",
+                "stateMutability": "view",
+                "inputs": [{"internalType": "uint256", "name": "_tokenId", "type": "uint256"}],
+                "name": "_tokenIdToHash",
+                "outputs": [{"internalType": "string", "name": "tokenHash", "type": "string"}]
+            }], "0xfb52bba2ed5e04b9075fbdd7054d903ab47b46a0");
+
+            // Re-build SVG when inputs change
+            currTokenId = null;
+            tokenId.onchange = width.onchange = height.onchange = () => {
+                refreshQuery(true)
+                resetArt();
+            }
+            async function resetArt() {
+                fullscreen.disabled = render.disabled = true;
+                if (currTokenId != tokenId.value) {
+                    currTokenId = tokenId.value;
+                    currHash = await contract.methods._tokenIdToHash(tokenId.value).call();
+                }
+                art.innerHTML = buildSVG(currTokenId, currHash, parseInt(width.value), parseInt(height.value));
+                fullscreen.disabled = render.disabled = false; // Don't enable until hash is fetched and SVG is built
+            }
+
+            duration.onchange = () => refreshQuery(true);
+
+            // Cancel capturing or rendering
+            cancel.onclick = async () => {
+                gif.capturing = false;
+                clearTimeout(timeout);
+                gif.abort();
+                setUI();
+                resetArt();
+            }
+
+            // Set button text and disability
+            function setUI() {
+                cancel.style.display = gif.capturing || gif.running ? "inline-block" : "none";
+                fullscreen.style.display = gif.capturing || gif.running ? "none" : "inline-block";
+                if (!gif.capturing && !gif.running) render.textContent = "Render GIF"; 
+                document.querySelectorAll("input,button").forEach(e =>
+                    e.disabled = e != cancel ? gif.capturing || gif.running : false);
+            }
+
+            // Render SVG -> GIF
+            render.onclick = async () => {
+                gif = new GIF({workers: 4, quality:1, globalPalette:true});
+                gif.on("progress", p => render.textContent = `Rendering (${Math.round(100*p)}%)`);
+                gif.on('finished', function(blob) {
+                    gif.abort();
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `chainwave-${currTokenId}-${width.value}x${height.value}-${duration.value}s.gif`;
+                    link.click();
+                    resetArt();
+                    setUI();
+                });
+
+                timeout = setTimeout(() => {
+                    gif.capturing = false;
+                    gif.render();
+                    art.innerHTML = "";
+                }, parseInt(duration.value) * 1000)
+
+                resetArt();
+                gif.capturing = true;
+                setUI();
+                svgToGif(art.querySelector('svg'), gif, progress =>
+                    gif.capturing ? render.textContent = `Capturing (${progress})` : null);
+            }
+
+            resetArt();
+        </script>
+    </body>
+</html>
