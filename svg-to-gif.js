@@ -20,17 +20,17 @@ function svgToGif(svg, gif, progress) {
         // Compute the animation, and style it on the copy
         animated.forEach((n,i) => {
             const attr = n.getAttribute("attributeName");
-            copyAnimated[i].style[attr] = getComputedStyle(n.targetElement)[attr]
+            copyAnimated[i].style[attr] = getComputedStyle(n.targetElement)[attr];
         });
 
         // Add the frame to GIF.js
         const img = new Image()
         img.addEventListener('load', ()=> {
             gif.addFrame(img, { delay: 20 });
-            progress(gif.frames.length)
+            progress(gif.frames.length);
+            setTimeout(capture, 14);
         });
         img.src = 'data:image/svg+xml;base64,'+btoa(serializer.serializeToString(copy));
-        requestAnimationFrame(capture);
     }
-    requestAnimationFrame(capture)
+    capture();
 }

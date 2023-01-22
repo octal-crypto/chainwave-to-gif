@@ -3,6 +3,7 @@
     <head>
         <title>CH41NW4V3S</title>
         <meta charset="utf-8">
+        <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
         <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
         <script src="gif.js"></script>
         <script src="chainwaves.js"></script>
@@ -31,7 +32,7 @@
             }
             h1 { font-size: 30px; margin:15px; }
             input { width: 80px;}
-            button { height:35px; width: 200px; }
+            button { height:35px; width: 205px; }
             #cancel { display:none }
             input:invalid { border-color: red }
             input:enabled:hover, button:enabled:hover {
@@ -45,9 +46,9 @@
         <div id="top">
             <h1>CH41NW4V35</h1>
             Token Id:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input id="id" type="number" value="0" min="0" data-min="0" data-default="0"><br>
-            Width (pixels):&nbsp; <input id="width" type="number" value="600" min="1" data-min="1" data-default="600"><br>
-            Height (pixels): <input id="height" type="number" value="600" min="1" data-min="1" data-default="600"><br>
-            Duration (sec):&nbsp; <input id="duration" type="number" value="4" min="1" data-min="1" data-default="4"><br>
+            Width (pixels):&nbsp; <input id="width" type="number" value="500" min="1" data-min="1" data-default="500"><br>
+            Height (pixels): <input id="height" type="number" value="500" min="1" data-min="1" data-default="500"><br>
+            Duration (sec):&nbsp; <input id="duration" type="number" value="5" min="1" data-min="1" data-default="5"><br>
             <br>
             <button id="fs" data-min="0" data-max="1" data-default="0" disabled>Fullscreen</button>
             <button id="cancel">Cancel</button>
@@ -134,10 +135,7 @@
 
             // Re-build SVG when inputs change
             currTokenId = null;
-            tokenId.onchange = width.onchange = height.onchange = () => {
-                refreshQuery(true)
-                resetArt();
-            }
+            tokenId.onchange = width.onchange = height.onchange = ()=> { refreshQuery(true); resetArt(); }
             async function resetArt() {
                 fullscreen.disabled = render.disabled = true;
                 if (currTokenId != tokenId.value) {
@@ -170,7 +168,7 @@
 
             // Render SVG -> GIF
             render.onclick = async () => {
-                gif = new GIF({workers: 4, quality:1, globalPalette:true});
+                gif = new GIF({workers: 2, quality:1, globalPalette:true});
                 gif.on("progress", p => render.textContent = `Rendering (${Math.round(100*p)}%)`);
                 gif.on('finished', function(blob) {
                     gif.abort();

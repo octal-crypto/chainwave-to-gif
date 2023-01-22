@@ -56,7 +56,7 @@ function buildSVG(tokenId, hash, width, height) {
 function buildXLines(chars, modStart, numLines, scaleW, scaleH) {
     let lineOut = "";
     for (let i=0, x=1, y=0; i < numLines*scaleH; ++i, y+=4, x=x==1?3:1, modStart+=7) {
-        lineOut += buildLine(chars, modStart, x, y, scaleW)
+        lineOut += buildLine(chars, modStart, x, y, scaleW);
     }
     return lineOut;
 }
@@ -64,7 +64,7 @@ function buildXLines(chars, modStart, numLines, scaleW, scaleH) {
 function buildLine(chars, modJump, x, y, scaleW) {
     let lineOut = `<text x='-${x}' y='${y}'>`;
     for (let i=0, randomModulo=1; i < Math.ceil(12*scaleW); ++i, randomModulo+=modJump) {
-        lineOut += chars[randomModulo % 4]
+        lineOut += chars[randomModulo % 4];
     }
     return lineOut + "</text>";
 }
@@ -74,5 +74,5 @@ function buildUseLines(pal, numCols, scaleW, scaleH) {
     for (let i=0, y=0; i < numCols; ++i, y+=3) {
         output += `<use href='#chars' y='${y}' x='0' filter='url(#turbulence)' width='${20*scaleW}' height='${20*scaleH}' fill='#${pal[i + 1]}'/>`;
     }
-    return output
+    return output;
 }
