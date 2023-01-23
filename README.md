@@ -1,3 +1,3 @@
 SVG -> GIF conversion
 
-https://octal.art/chainwaves-to-gif
+https://octal.art/chainwave-to-gif
