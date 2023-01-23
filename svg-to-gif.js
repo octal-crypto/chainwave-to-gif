@@ -1,6 +1,10 @@
 const serializer = new XMLSerializer();
 
-function svgToGif(svg, gif, progress) {
+// GIFs frame delays are in 1/100 second increments.
+// See: https://superuser.com/a/1449370, https://www.w3.org/Graphics/GIF/spec-gif89a.txt
+const delayMs = 20; // 50 FPS
+
+function svgToGif(svg, gif, duration, progress) {
     // Copy the SVG 
     const copy = new Document();
     copy.appendChild(svg.cloneNode(true));
@@ -26,9 +30,13 @@ function svgToGif(svg, gif, progress) {
         // Add the frame to GIF.js
         const img = new Image()
         img.addEventListener('load', ()=> {
-            gif.addFrame(img, { delay: 20 });
-            progress(gif.frames.length);
-            setTimeout(capture, 14);
+            gif.addFrame(img, { delay: delayMs });
+            const p = {
+                frames: gif.frames.length,
+                done: gif.frames.length == duration * (1000/delayMs)
+            };
+            progress(p);
+            if (!p.done) setTimeout(capture, delayMs);
         });
         img.src = 'data:image/svg+xml;base64,'+btoa(serializer.serializeToString(copy));
     }

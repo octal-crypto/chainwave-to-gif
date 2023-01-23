@@ -31,8 +31,8 @@
                 margin: 2px;
             }
             h1 { font-size: 30px; margin:15px; }
-            input { width: 80px;}
-            button { height:35px; width: 205px; }
+            input { width: 85px;}
+            button { height:35px; width: 210px; }
             #cancel { display:none }
             input:invalid { border-color: red }
             input:enabled:hover, button:enabled:hover {
@@ -151,7 +151,6 @@
             // Cancel capturing or rendering
             cancel.onclick = async () => {
                 gif.capturing = false;
-                clearTimeout(timeout);
                 gif.abort();
                 setUI();
                 resetArt();
@@ -161,7 +160,8 @@
             function setUI() {
                 cancel.style.display = gif.capturing || gif.running ? "inline-block" : "none";
                 fullscreen.style.display = gif.capturing || gif.running ? "none" : "inline-block";
-                if (!gif.capturing && !gif.running) render.textContent = "Render GIF"; 
+                if (!gif.capturing && !gif.running) render.textContent = "Render GIF";
+                art.style.display = gif.capturing || gif.running ? "none" : "block";
                 document.querySelectorAll("input,button").forEach(e =>
                     e.disabled = e != cancel ? gif.capturing || gif.running : false);
             }
@@ -169,7 +169,7 @@
             // Render SVG -> GIF
             render.onclick = async () => {
                 gif = new GIF({workers: 2, quality:1, globalPalette:true});
-                gif.on("progress", p => render.textContent = `Rendering (${Math.round(100*p)}%)`);
+                gif.on("progress", p => render.textContent = `Rendering ${Math.round(100*p)}%`);
                 gif.on('finished', function(blob) {
                     gif.abort();
                     const link = document.createElement("a");
@@ -180,17 +180,17 @@
                     setUI();
                 });
 
-                timeout = setTimeout(() => {
-                    gif.capturing = false;
-                    gif.render();
-                    art.innerHTML = "";
-                }, parseInt(duration.value) * 1000)
-
-                resetArt();
                 gif.capturing = true;
+                resetArt();
                 setUI();
-                svgToGif(art.querySelector('svg'), gif, progress =>
-                    gif.capturing ? render.textContent = `Capturing (${progress})` : null);
+                svgToGif(art.querySelector('svg'), gif, duration.value, progress => {
+                    render.textContent = `Capturing ${progress.frames}`;
+                    if (progress.done) {
+                        gif.capturing = false;
+                        gif.render();
+                        art.innerHTML = "";
+                    }
+                });
             }
 
             resetArt();

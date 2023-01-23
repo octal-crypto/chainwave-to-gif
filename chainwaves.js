@@ -41,7 +41,7 @@ function buildSVG(tokenId, hash, width, height) {
             <defs>
                 <g id='chars' font-family='monospace'>
                     ${buildXLines(tokenTraits.charSet, modStart, 10 - tokenTraits.numCols, scaleW, scaleH)}
-                    <animate attributeName='font-size' attributeType='XML' values='100%;${tokenTraits.speed}%;100%' begin='0s' dur='15s' repeatCount='indefinite'/>
+                    <animate attributeName='font-size' attributeType='XML' values='13px;${13*(tokenTraits.speed/100)}px;13px' begin='0s' dur='15s' repeatCount='indefinite'/>
                 </g>
                 <filter id='turbulence'>
                     <feTurbulence type='turbulence' baseFrequency='0.${tokenTraits.noise}' numOctaves='${tokenTraits.tightness}' result='noise' seed='${tokenId}'/>
