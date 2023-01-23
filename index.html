@@ -7,6 +7,7 @@
         <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
         <script src="gif.js"></script>
         <script src="chainwaves.js"></script>
+        <script src="hashes.js"></script>
         <script src="svg-to-gif.js"></script>
         <style>
             html { overflow-y: scroll }
@@ -140,7 +141,7 @@
                 fullscreen.disabled = render.disabled = true;
                 if (currTokenId != tokenId.value) {
                     currTokenId = tokenId.value;
-                    currHash = await contract.methods._tokenIdToHash(tokenId.value).call();
+                    currHash = hashes[tokenId.value] ?? await contract.methods._tokenIdToHash(tokenId.value).call();
                 }
                 art.innerHTML = buildSVG(currTokenId, currHash, parseInt(width.value), parseInt(height.value));
                 fullscreen.disabled = render.disabled = false; // Don't enable until hash is fetched and SVG is built
