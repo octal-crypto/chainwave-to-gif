@@ -161,7 +161,7 @@
                 cancel.style.display = gif.capturing || gif.running ? "inline-block" : "none";
                 fullscreen.style.display = gif.capturing || gif.running ? "none" : "inline-block";
                 if (!gif.capturing && !gif.running) render.textContent = "Render GIF";
-                art.style.display = gif.capturing || gif.running ? "none" : "block";
+                art.style.visibility = gif.capturing || gif.running ? "hidden" : "visible";
                 document.querySelectorAll("input,button").forEach(e =>
                     e.disabled = e != cancel ? gif.capturing || gif.running : false);
             }
