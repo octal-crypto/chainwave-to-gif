@@ -24,7 +24,10 @@ function svgToGif(svg, gif, duration, progress) {
         // Compute the animation, and style it on the copy
         animated.forEach((n,i) => {
             const attr = n.getAttribute("attributeName");
-            copyAnimated[i].style[attr] = getComputedStyle(n.targetElement)[attr];
+            // SVG attributes
+            try { copyAnimated[i].setAttribute(attr, n.targetElement[attr].animVal.value); }
+            // CSS attributes
+            catch { copyAnimated[i].style[attr] = getComputedStyle(n.targetElement)[attr]; }
         });
 
         // Add the frame to GIF.js
